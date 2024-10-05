@@ -42,11 +42,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-      <footer className="mt-20 text-center">
-        <p className="text-sm text-gray-500">
-          © {new Date().getFullYear()} Greptilog. All rights reserved.
-        </p>
-      </footer>
     </div>
   )
 }
