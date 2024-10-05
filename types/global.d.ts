@@ -8,11 +8,13 @@ declare global {
         commits_url: string;
         changelogs: Changelog[];
     };
-
     type Commit = {
         sha: string;
         commit: {
             message: string;
+            author: {
+                date: string;
+            };
         };
         html_url: string;
     };

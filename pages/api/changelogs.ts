@@ -33,13 +33,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
       // // create new changelog
       // format commits + prompt
-      const since = req.body.since;
-      const until = req.body.until;
+      const since = req.body.since ? new Date(req.body.since) : undefined;
+      const until = req.body.until ? new Date(req.body.until) : undefined;
+      console.log(since, until);
       const url = `https://api.github.com/repositories/${repo_id}/commits`
-        + (since ? `&since=${since}` : '')
-        + (until ? `&until=${until}` : '');
+        + (since || until ? '?' : '')
+        + (since ? `since=${encodeURIComponent(since.toISOString())}` : '')
+        + (until ? (since ? `&` : '') + `until=${encodeURIComponent(until.toISOString())}` : '');
+      console.log(url);
       const commits_response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
       const commits = commits_response.data as Commit[];
+      console.log(commits.length);
       const prompt = `Given the following commits, generate a friendly changelog in markdown for users to know what has changed. \
         You can use emojis. Do not mention code specific changes like talking about loops or comments.\n\n`
         + commits.map(commit => `- ${commit.commit.message}`).join('\n'); // TODO: fix commit links (currently removed due to LLM hallucinations)
@@ -81,8 +85,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   } else if (req.method === 'GET') {
     try {
       const repo_id = req.query.id;
-      const owner = req.query.owner;
-      const name = req.query.name;
+      const owner = (req.query.owner as string)?.toLowerCase();
+      const name = (req.query.name as string)?.toLowerCase();
       if (!repo_id && (!owner || !name)) {
         return res.status(400).json({ message: 'No repository ID or owner/repo provided' });
       }

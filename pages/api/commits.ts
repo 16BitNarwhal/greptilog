@@ -21,7 +21,7 @@ const commitsHandler = async (req: NextApiRequest, res: NextApiResponse) => {
       const url = `https://api.github.com/repositories/${repo_id}/commits?page=${page}&per_page=${perPage}`
         + (since ? `&since=${since}` : '')
         + (until ? `&until=${until}` : '');
-
+      console.log(url);
       const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
       return res.status(200).json(response.data);
     } catch (error) {

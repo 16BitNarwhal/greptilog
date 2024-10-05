@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Session } from 'next-auth';
 
-interface Commit {
-  sha: string;
-  html_url: string;
-  commit: {
-    message: string;
-  };
-}
+import { format } from 'date-fns';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface CommitsProps {
   selectedRepo: Repo | null;
@@ -21,7 +20,7 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
   const [commits, setCommits] = useState<Commit[]>([]);
   const [totalCommits, setTotalCommits] = useState(0);
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
+  const perPage = 10;
   const [since, setSince] = useState("");
   const [until, setUntil] = useState("");
   const [version, setVersion] = useState("");
@@ -43,9 +42,11 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
     if (!selectedRepo) return;
     const fetchCommits = async () => {
       setLoading(true);
+      const sinceDate = new Date(since);
+      const untilDate = new Date(until);
       const url = `/api/commits?id=${selectedRepo.id}&page=${page}&per_page=${perPage}` 
-        + (since ? `&since=${since}` : '') 
-        + (until ? `&until=${until}` : '');
+        + (since ? `&since=${sinceDate}` : '') 
+        + (until ? `&until=${untilDate}` : '');
       const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
       setCommits(response.data);
       setLoading(false);
@@ -56,7 +57,9 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
   const handleCreateChangelog = async () => {
     if (!selectedRepo) return;
     setLoading(true);
-    await axios.post(`/api/changelogs?id=${selectedRepo.id}`, { since, until, version, title }, { 
+    const sinceDate = new Date(since);
+    const untilDate = new Date(until);
+    await axios.post(`/api/changelogs?id=${selectedRepo.id}`, { since:sinceDate, until:untilDate, version, title }, { 
       headers: { Authorization: `Bearer ${session.accessToken}` },
       withCredentials: true,
     });
@@ -65,48 +68,99 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
   }
 
   return (
-    <div>
-      {loading && <div>Loading...</div>}
-      <button onClick={handleCreateChangelog}>Generate changelog</button>
-      <div className="flex items-center">
-        <label htmlFor="since" className="mr-2">Since:</label>
-        <input type="datetime-local" id="since" value={since} onChange={(event) => setSince(event.target.value)} className="border px-2 py-1" />
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="since">Since</Label>
+          <Input
+            type="datetime-local"
+            id="since"
+            value={since}
+            onChange={(e) => setSince(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="until">Until</Label>
+          <Input
+            type="datetime-local"
+            id="until"
+            value={until}
+            onChange={(e) => setUntil(e.target.value)}
+          />
+        </div>
       </div>
-      <div className="flex items-center">
-        <label htmlFor="until" className="mr-2">Until:</label>
-        <input type="datetime-local" id="until" value={until} onChange={(event) => setUntil(event.target.value)} className="border px-2 py-1" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="version">Version</Label>
+          <Input
+            type="text"
+            id="version"
+            value={version}
+            onChange={(e) => setVersion(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="title">Title (optional)</Label>
+          <Input
+            type="text"
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
       </div>
-      <div className="flex items-center">
-        <label htmlFor="page" className="mr-2">Page:</label>
-        <input type="number" id="page" value={page} onChange={(event) => setPage(Math.min(Math.ceil(totalCommits/perPage), Math.max(1, parseInt(event.target.value, 10))))} className="border px-2 py-1 w-12" />
-      </div>
-      <div className="flex items-center">
-        <span className="mr-2">Commits per page:</span>
-        {[10, 25, 100].map((value) => (
-          <label key={value} className="mx-2">
-            <input type="radio" name="perPage" value={value} checked={perPage === value} onChange={() => setPerPage(value)} className="mr-1" />
-            {value}
-          </label>
+      <Button onClick={handleCreateChangelog}>Generate changelog</Button>
+      <div className="space-y-4">
+        {loading ? (
+          <div className="text-center">Loading...</div>
+        ) : commits.map((commit) => (
+          <Card key={commit.sha}>
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold">{commit.commit.message.split('\n')[0]}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {format(new Date(commit.commit.author.date), 'PPpp')}
+                  </p>
+                </div>
+                <a
+                  href={commit.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline text-sm"
+                >
+                  View on GitHub
+                </a>
+              </div>
+              {commit.commit.message.split('\n').slice(1).join('\n').trim() && (
+                <p className="mt-2 text-sm whitespace-pre-wrap">
+                  {commit.commit.message.split('\n').slice(1).join('\n').trim()}
+                </p>
+              )}
+            </CardContent>
+          </Card>
         ))}
       </div>
-      <div className="flex items-center">
-        <label htmlFor="version" className="mr-2">Version:</label>
-        <input type="text" id="version" value={version} onChange={(event) => setVersion(event.target.value)} className="border px-2 py-1" />
-      </div>
-      <div className="flex items-center">
-        <label htmlFor="title" className="mr-2">Title (optional):</label>
-        <input type="text" id="title" value={title} onChange={(event) => setTitle(event.target.value)} className="border px-2 py-1" />
-      </div>
-      <div>
-        {commits.map((commit) => (
-          <div key={commit.sha} className="mt-4">
-            <a target="_blank" href={commit.html_url} className="block">
-              {commit.commit.message
-                .split('\n')
-                .map((line, index) => <span key={index} style={{ display: 'block' }}>{line}</span>)}
-            </a>
-          </div>
-        ))}
+      <div className="flex justify-between items-center">
+        <Button
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={page === 1}
+          variant="outline"
+        >
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          Previous
+        </Button>
+        <span className="text-sm text-muted-foreground">
+          Page {page} of {Math.ceil(totalCommits / perPage)}
+        </span>
+        <Button
+          onClick={() => setPage((p) => p + 1)}
+          disabled={page >= Math.ceil(totalCommits / perPage)}
+          variant="outline"
+        >
+          Next
+          <ChevronRight className="h-4 w-4 ml-2" />
+        </Button>
       </div>
     </div>
   );
