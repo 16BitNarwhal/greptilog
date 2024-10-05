@@ -63,7 +63,7 @@ const ApiReferencePage = () => {
 
         <div className="px-4 py-5 sm:px-6 border-t border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900">Example Usage</h2>
-          <p className="mt-1 text-sm text-gray-500">Here's an example of how to use this endpoint in JavaScript:</p>
+          <p className="mt-1 text-sm text-gray-500">Here&apos;s an example of how to use this endpoint in JavaScript:</p>
           <pre className="bg-gray-100 text-gray-900 p-4 rounded mt-2 overflow-auto">
             {`
 // Example: Fetch changelogs for a repository

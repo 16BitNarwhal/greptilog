@@ -11,7 +11,7 @@ export default function Home() {
           Welcome to <span className="text-indigo-600">Greptilog</span>
         </h1>
         <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-          Automatically generate changelogs from your GitHub repository's commits. Simplify your release process and keep your users informed.
+          Automatically generate changelogs from your GitHub repository&apos;s commits. Simplify your release process and keep your users informed.
         </p>
         <div className="mt-10 flex justify-center">
           <Link href="/create" passHref>

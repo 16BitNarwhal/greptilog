@@ -20,7 +20,7 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
   const [commits, setCommits] = useState<Commit[]>([]);
   const [totalCommits, setTotalCommits] = useState(0);
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
+  const perPage = 10;
   const [since, setSince] = useState("");
   const [until, setUntil] = useState("");
   const [version, setVersion] = useState("");
