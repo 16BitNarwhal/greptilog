@@ -24,7 +24,6 @@ export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
       const response = await axios.get(`/api/changelogs?id=${selectedRepo?.id}`, {
         headers: { Authorization: `Bearer ${session.accessToken}` },
       });
-      // sort reverse chronologically
       setChangelogs(
         response.data.data.sort((a: ChangelogWithId, b: ChangelogWithId) => {
           const aDate = new Date(a.timestamp), bDate = new Date(b.timestamp);
@@ -45,7 +44,7 @@ export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
         headers: { Authorization: `Bearer ${session.accessToken}` }
       });
       setEditingChangelog(null);
-      fetchChangelogs(); // Refresh the list after saving
+      fetchChangelogs();
     } catch (error) {
       console.error('Error saving changelog:', error);
     }
@@ -54,28 +53,59 @@ export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
 
   return (
     <div>
-      <h2>Changelogs</h2>
-      {loading && <div>Loading...</div>}
-      {Array.isArray(changelogs) && changelogs.map((changelog) => (
-        <div key={changelog._id}>
-          <p>{changelog.version} {changelog.title ? `- ${changelog.title}` : ''}</p>
-          <p>{new Date(changelog.timestamp).toLocaleString()}</p>
-          {editingChangelog && editingChangelog?._id === changelog._id ? (
-            <>
-              <textarea
-                value={editingChangelog.md_content}
-                onChange={(e) => setEditingChangelog({ ...editingChangelog, md_content: e.target.value })}
-              />
-              <button onClick={handleSave}>Save Changes</button>
-            </>
-          ) : (
-            <>
-              <ReactMarkdown>{changelog.md_content}</ReactMarkdown>
-              <button onClick={() => setEditingChangelog(changelog)}>Edit</button>
-            </>
-          )}
+      <h2 className="text-2xl font-bold text-gray-900 mb-4">Changelogs</h2>
+      {loading ? (
+        <div className="text-center">Loading changelogs...</div>
+      ) : (
+        <div className="space-y-8">
+          {Array.isArray(changelogs) && changelogs.map((changelog) => (
+            <div key={changelog._id} className="bg-white shadow overflow-hidden sm:rounded-lg">
+              <div className="px-4 py-5 sm:px-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  {changelog.version} {changelog.title ? `- ${changelog.title}` : ''}
+                </h3>
+                <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                  {new Date(changelog.timestamp).toLocaleString()}
+                </p>
+              </div>
+              <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
+                {editingChangelog && editingChangelog?._id === changelog._id ? (
+                  <div className="sm:p-6">
+                    <textarea
+                      value={editingChangelog.md_content}
+                      onChange={(e) => setEditingChangelog({ ...editingChangelog, md_content: e.target.value })}
+                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      rows={10}
+                    />
+                    <div className="mt-4">
+                      <button
+                        onClick={handleSave}
+                        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="sm:p-6">
+                    <ReactMarkdown className="prose max-w-none">
+                      {changelog.md_content}
+                    </ReactMarkdown>
+                    <div className="mt-4">
+                      <button
+                        onClick={() => setEditingChangelog(changelog)}
+                        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }

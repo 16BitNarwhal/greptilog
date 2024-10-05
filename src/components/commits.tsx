@@ -66,48 +66,104 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
 
   return (
     <div>
-      {loading && <div>Loading...</div>}
-      <button onClick={handleCreateChangelog}>Generate changelog</button>
-      <div className="flex items-center">
-        <label htmlFor="since" className="mr-2">Since:</label>
-        <input type="datetime-local" id="since" value={since} onChange={(event) => setSince(event.target.value)} className="border px-2 py-1" />
+      <div className="mb-4">
+        <button
+          onClick={handleCreateChangelog}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+        >
+          Generate changelog
+        </button>
       </div>
-      <div className="flex items-center">
-        <label htmlFor="until" className="mr-2">Until:</label>
-        <input type="datetime-local" id="until" value={until} onChange={(event) => setUntil(event.target.value)} className="border px-2 py-1" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="since" className="block text-sm font-medium text-gray-700">Since:</label>
+          <input
+            type="datetime-local"
+            id="since"
+            value={since}
+            onChange={(event) => setSince(event.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div>
+          <label htmlFor="until" className="block text-sm font-medium text-gray-700">Until:</label>
+          <input
+            type="datetime-local"
+            id="until"
+            value={until}
+            onChange={(event) => setUntil(event.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div>
+          <label htmlFor="version" className="block text-sm font-medium text-gray-700">Version:</label>
+          <input
+            type="text"
+            id="version"
+            value={version}
+            onChange={(event) => setVersion(event.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title (optional):</label>
+          <input
+            type="text"
+            id="title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
       </div>
-      <div className="flex items-center">
-        <label htmlFor="page" className="mr-2">Page:</label>
-        <input type="number" id="page" value={page} onChange={(event) => setPage(Math.min(Math.ceil(totalCommits/perPage), Math.max(1, parseInt(event.target.value, 10))))} className="border px-2 py-1 w-12" />
+      <div className="mt-4">
+        <label htmlFor="page" className="block text-sm font-medium text-gray-700">Page:</label>
+        <input
+          type="number"
+          id="page"
+          value={page}
+          onChange={(event) => setPage(Math.min(Math.ceil(totalCommits/perPage), Math.max(1, parseInt(event.target.value, 10))))}
+          className="mt-1 block w-20 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
       </div>
-      <div className="flex items-center">
-        <span className="mr-2">Commits per page:</span>
-        {[10, 25, 100].map((value) => (
-          <label key={value} className="mx-2">
-            <input type="radio" name="perPage" value={value} checked={perPage === value} onChange={() => setPerPage(value)} className="mr-1" />
-            {value}
-          </label>
-        ))}
+      <div className="mt-4">
+        <span className="block text-sm font-medium text-gray-700">Commits per page:</span>
+        <div className="mt-2 space-x-4">
+          {[10, 25, 100].map((value) => (
+            <label key={value} className="inline-flex items-center">
+              <input
+                type="radio"
+                name="perPage"
+                value={value}
+                checked={perPage === value}
+                onChange={() => setPerPage(value)}
+                className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+              />
+              <span className="ml-2 text-sm text-gray-700">{value}</span>
+            </label>
+          ))}
+        </div>
       </div>
-      <div className="flex items-center">
-        <label htmlFor="version" className="mr-2">Version:</label>
-        <input type="text" id="version" value={version} onChange={(event) => setVersion(event.target.value)} className="border px-2 py-1" />
-      </div>
-      <div className="flex items-center">
-        <label htmlFor="title" className="mr-2">Title (optional):</label>
-        <input type="text" id="title" value={title} onChange={(event) => setTitle(event.target.value)} className="border px-2 py-1" />
-      </div>
-      <div>
-        {commits.map((commit) => (
-          <div key={commit.sha} className="mt-4">
-            <a target="_blank" href={commit.html_url} className="block">
-              {commit.commit.message
-                .split('\n')
-                .map((line, index) => <span key={index} style={{ display: 'block' }}>{line}</span>)}
-            </a>
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <div className="mt-4 text-center">Loading commits...</div>
+      ) : (
+        <div className="mt-4 space-y-4">
+          {commits.map((commit) => (
+            <div key={commit.sha} className="border-t border-gray-200 pt-4">
+              <a
+                href={commit.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-sm text-gray-600 hover:text-gray-900"
+              >
+                {commit.commit.message.split('\n').map((line, index) => (
+                  <span key={index} className="block">{line}</span>
+                ))}
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
