@@ -22,11 +22,7 @@ const commitsHandler = async (req: NextApiRequest, res: NextApiResponse) => {
         + (since ? `&since=${since}` : '')
         + (until ? `&until=${until}` : '');
 
-      const response = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-      });
+      const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
       return res.status(200).json(response.data);
     } catch (error) {
       console.error('Error fetching commits', error);
