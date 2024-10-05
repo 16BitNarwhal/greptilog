@@ -16,6 +16,7 @@ function Content() {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null);
   const [commits, setCommits] = useState<Commit[]>([]);
+  const [totalCommits, setTotalCommits] = useState(0);
 
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(10);
@@ -23,9 +24,9 @@ function Content() {
   const [until, setUntil] = useState("");
 
   useEffect(() => {
+    if (status !== "authenticated") return;
     const fetchRepos = async () => {
-      if (status !== "authenticated") return;
-      const response = await axios.get('/api/repos', { headers: { Authorization: `Bearer ${session.accessToken}`, }, });
+      const response = await axios.get('/api/repos', { headers: { Authorization: `Bearer ${session.accessToken}` } });
       setRepos(response.data);
     };
     fetchRepos();
@@ -33,13 +34,25 @@ function Content() {
 
   useEffect(() => {
     if (!selectedRepo) return;
+    if (status !== "authenticated") return;
+    const fetchTotalCommits = async () => {
+      const url = `/api/total-commits?id=${selectedRepo.id}`;
+      const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
+      setTotalCommits(response.data || 0);
+      console.log(response.data);
+    }
+    fetchTotalCommits();
+  }, [selectedRepo])
+
+  useEffect(() => {
+    if (!selectedRepo) return;
+    if (status !== "authenticated") return;
     const fetchCommits = async () => {
-      if (status !== "authenticated") return;
 
       const url = `/api/commits?id=${selectedRepo.id}&page=${page}&per_page=${perPage}` 
         + (since ? `&since=${since}` : '') 
         + (until ? `&until=${until}` : '');
-      const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}`, }, });
+      const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
       setCommits(response.data);
     }
     fetchCommits();
@@ -78,7 +91,7 @@ function Content() {
         </div>
         <div className="flex items-center">
           <label htmlFor="page" className="mr-2">Page:</label>
-          <input type="number" id="page" value={page} onChange={(event) => setPage(Math.max(1, parseInt(event.target.value, 10)))} className="border px-2 py-1 w-12" />
+          <input type="number" id="page" value={page} onChange={(event) => setPage(Math.min(Math.ceil(totalCommits/perPage), Math.max(1, parseInt(event.target.value, 10))))} className="border px-2 py-1 w-12" />
         </div>
         <div className="flex items-center">
           <span className="mr-2">Commits per page:</span>
