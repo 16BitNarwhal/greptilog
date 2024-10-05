@@ -80,7 +80,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!repo_id) {
         return res.status(400).json({ message: 'No repository ID provided' });
       }
-
+      await connectToDatabase();
       const repo = await RepoModel.findOne({ id: repo_id });
       const all_changelogs = repo?.changelogs || [];
 
@@ -105,12 +105,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
   } else if (req.method === 'PUT') {
     console.log('reeee');
-
     try {
+      await connectToDatabase();
       const changelog_id = req.query.changelog_id;
       if (!changelog_id) {
         return res.status(400).json({ message: 'No changelog ID provided' });
       }
+      console.log(changelog_id);
       const changelog = await RepoModel.findOne({ changelogs: { $elemMatch: { _id: changelog_id } } });
       if (!changelog) {
         return res.status(404).json({ message: 'Changelog not found' });
@@ -120,7 +121,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).json({ message: 'No changelog content provided' });
       }
 
-      changelog.changelogs[0].md_content = md_content;
+      changelog.changelogs.forEach((log: ChangelogWithId) => {
+        if (log._id.toString() === changelog_id) {
+          log.md_content = md_content;
+        }
+      })
       await changelog.save();
       return res.status(200).json({ message: 'Changelog updated' });
     } catch (error) {

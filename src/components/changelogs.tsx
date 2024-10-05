@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-interface ChangelogWithId extends Changelog {
-  _id: string;
-}
-
 interface ChangelogsProps {
   selectedRepo: { id: number; name: string; html_url: string } | null;
   session: any;
@@ -57,6 +53,7 @@ export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
         <div key={changelog._id}>
           {editingChangelog && editingChangelog?._id === changelog._id ? (
             <>
+              <p>{new Date(changelog.timestamp).toLocaleString()}</p>
               <textarea
                 value={editingChangelog.md_content}
                 onChange={(e) => setEditingChangelog({ ...editingChangelog, md_content: e.target.value })}
@@ -65,6 +62,7 @@ export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
             </>
           ) : (
             <>
+              <p>{new Date(changelog.timestamp).toLocaleString()}</p>
               <p>{changelog.md_content}</p>
               <button onClick={() => setEditingChangelog(changelog)}>Edit</button>
             </>
