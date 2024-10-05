@@ -13,7 +13,6 @@ const openai = new OpenAI({
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'POST') {
     const session = await getServerSession(req, res, authOptions);
-    console.log(session);
     if (!session) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -37,8 +36,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         + (until ? `&until=${until}` : '');
       const commits_response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
       const commits = commits_response.data as Commit[];
-      const prompt = `Given the following commits, generate a friendly changelog in markdown for users. Make sure to use emojis and links:\n\n`
-        + commits.map(commit => `- ${commit.commit.message} (${commit.html_url})`).join('\n');
+      const prompt = `Given the following commits, generate a friendly changelog in markdown for users to know what has changed. \
+        You can use emojis. Do not mention code specific changes like talking about loops or comments.\n\n`
+        + commits.map(commit => `- ${commit.commit.message}`).join('\n'); // TODO: fix commit links (currently removed due to LLM hallucinations)
 
       console.log("Making request to OpenAI...");
       const openai_response = await openai.chat.completions.create({
@@ -61,7 +61,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         title: req.query.title as string,
         commits: commits,
       }
-
       console.log("Adding changelog to db...");
       // add changelog to db
       await RepoModel.findOneAndUpdate({ id: repo_id }, { $push: { changelogs: changelog } });
@@ -81,11 +80,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!repo_id) {
         return res.status(400).json({ message: 'No repository ID provided' });
       }
-
+      await connectToDatabase();
       const repo = await RepoModel.findOne({ id: repo_id });
       const all_changelogs = repo?.changelogs || [];
 
-      const use_links = req.body.use_links === 'true';
+      const use_links = req.query.use_links === 'true';
+      console.log(use_links);
       if (!use_links) {
         all_changelogs.forEach((log: Changelog) => {
           // Remove markdown links like [title](link)
@@ -104,10 +104,38 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       console.error('Error fetching changelogs', error);
       return res.status(500).json({ message: 'Error fetcing changelogs' });
     }
+  } else if (req.method === 'PUT') {
+    console.log('reeee');
+    try {
+      await connectToDatabase();
+      const changelog_id = req.query.changelog_id;
+      if (!changelog_id) {
+        return res.status(400).json({ message: 'No changelog ID provided' });
+      }
+      console.log(changelog_id);
+      const changelog = await RepoModel.findOne({ changelogs: { $elemMatch: { _id: changelog_id } } });
+      if (!changelog) {
+        return res.status(404).json({ message: 'Changelog not found' });
+      }
+      const { md_content } = req.body;
+      if (!md_content) {
+        return res.status(400).json({ message: 'No changelog content provided' });
+      }
+
+      changelog.changelogs.forEach((log: ChangelogWithId) => {
+        if (log._id.toString() === changelog_id) {
+          log.md_content = md_content;
+        }
+      })
+      await changelog.save();
+      return res.status(200).json({ message: 'Changelog updated' });
+    } catch (error) {
+      console.error('Error updating changelog', error);
+      return res.status(500).json({ message: 'Error updating changelog' });
+    }
   }
 
   return res.status(405).json({ message: 'Method not allowed' });
 };
 
 export default handler;
-

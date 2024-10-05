@@ -30,6 +30,10 @@ declare global {
         commits: Commit[];
     };
 
+    interface ChangelogWithId extends Changelog {
+        _id: string;
+    }
+
 }
 
 export {};
