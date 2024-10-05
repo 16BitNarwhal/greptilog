@@ -14,6 +14,7 @@ const ChangelogPage = async ({ params }: { params: { owner: string; name: string
 		<div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
 			<h1 className="text-3xl font-bold leading-tight">{name}</h1>
 			<div className="mt-4 space-y-4">
+				{changelogs.length === 0 && <p>No changelogs have been created for this repository</p>}
 				{changelogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((log, index) => (
 					<div key={index} className="border-b border-gray-200 py-4">
 						<h2 className="text-2xl font-bold">{log.version}</h2>
