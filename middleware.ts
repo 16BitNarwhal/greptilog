@@ -6,7 +6,7 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = req.nextUrl;
 
-  if (!token && pathname === "/protected") {
-    return NextResponse.redirect("/api/auth/signin");
+  if (!token && pathname === "/create") {
+    return NextResponse.redirect(new URL('/api/auth/signin', req.url));
   }
 }
