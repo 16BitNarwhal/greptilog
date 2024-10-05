@@ -11,7 +11,7 @@ interface Commit {
 }
 
 interface CommitsProps {
-  selectedRepo: { id: number; name: string; html_url: string } | null;
+  selectedRepo: Repo | null;
   session: Session;
   onGenerateChangelog: () => void;
 }

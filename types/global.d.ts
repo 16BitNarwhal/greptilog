@@ -1,6 +1,7 @@
 declare global {
     type Repo = {
         id: number;
+        owner: string;
         name: string;
         full_name: string;
         html_url: string;
@@ -20,7 +21,7 @@ declare global {
         timestamp: Date;
         version: string;
         md_content: string;
-        // // no markdown alternative?
+        // // alternative w/o markdown?
         // changes: {
         //     title: string;
         //     type?: string;

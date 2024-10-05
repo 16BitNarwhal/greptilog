@@ -16,6 +16,8 @@ const changelogSchema = new Schema<Changelog>({
 
 const repoSchema = new Schema<Repo>({
   id: { type: Number, required: true },
+  owner: { type: String, required: true },
+  name: { type: String, required: true },
   changelogs: [changelogSchema],
 });
 
