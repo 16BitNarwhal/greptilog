@@ -1,4 +1,3 @@
-// src/app/changelogs/[owner]/[name]/page.tsx
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';

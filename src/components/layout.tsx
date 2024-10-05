@@ -1,4 +1,3 @@
-// src/components/layout.tsx
 "use client";
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -6,7 +5,6 @@ import { usePathname } from 'next/navigation'
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isHomePage = pathname === '/'
-  const isCreatePage = pathname === '/create'
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -22,12 +20,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Link
                     href="/create"
                     className={
-                      isCreatePage
+                      pathname === '/create'
                         ? 'border-primary text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
                         : 'border-transparent text-foreground hover:border-foreground hover:text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
                     }
                   >
                     Create
+                  </Link>
+                  <Link
+                    href="/api-reference"
+                    className={
+                      pathname === '/api-reference'
+                        ? 'border-primary text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
+                        : 'border-transparent text-foreground hover:border-foreground hover:text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
+                    }
+                  >
+                    API Reference
                   </Link>
                 </div>
               </div>
