@@ -11,7 +11,7 @@ interface Commit {
 }
 
 interface CommitsProps {
-  selectedRepo: { id: number; name: string; html_url: string } | null;
+  selectedRepo: Repo | null;
   session: Session;
   onGenerateChangelog: () => void;
 }
@@ -24,6 +24,8 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
   const [perPage, setPerPage] = useState(10);
   const [since, setSince] = useState("");
   const [until, setUntil] = useState("");
+  const [version, setVersion] = useState("");
+  const [title, setTitle] = useState("");
 
   useEffect(() => {
     if (!selectedRepo) return;
@@ -54,7 +56,7 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
   const handleCreateChangelog = async () => {
     if (!selectedRepo) return;
     setLoading(true);
-    await axios.post(`/api/changelogs?id=${selectedRepo.id}`, { commits }, { 
+    await axios.post(`/api/changelogs?id=${selectedRepo.id}`, { since, until, version, title }, { 
       headers: { Authorization: `Bearer ${session.accessToken}` },
       withCredentials: true,
     });
@@ -86,6 +88,14 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
             {value}
           </label>
         ))}
+      </div>
+      <div className="flex items-center">
+        <label htmlFor="version" className="mr-2">Version:</label>
+        <input type="text" id="version" value={version} onChange={(event) => setVersion(event.target.value)} className="border px-2 py-1" />
+      </div>
+      <div className="flex items-center">
+        <label htmlFor="title" className="mr-2">Title (optional):</label>
+        <input type="text" id="title" value={title} onChange={(event) => setTitle(event.target.value)} className="border px-2 py-1" />
       </div>
       <div>
         {commits.map((commit) => (

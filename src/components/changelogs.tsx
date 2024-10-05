@@ -58,9 +58,10 @@ export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
       {loading && <div>Loading...</div>}
       {Array.isArray(changelogs) && changelogs.map((changelog) => (
         <div key={changelog._id}>
+          <p>{changelog.version} {changelog.title ? `- ${changelog.title}` : ''}</p>
+          <p>{new Date(changelog.timestamp).toLocaleString()}</p>
           {editingChangelog && editingChangelog?._id === changelog._id ? (
             <>
-              <p>{new Date(changelog.timestamp).toLocaleString()}</p>
               <textarea
                 value={editingChangelog.md_content}
                 onChange={(e) => setEditingChangelog({ ...editingChangelog, md_content: e.target.value })}
@@ -69,7 +70,6 @@ export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
             </>
           ) : (
             <>
-              <p>{new Date(changelog.timestamp).toLocaleString()}</p>
               <ReactMarkdown>{changelog.md_content}</ReactMarkdown>
               <button onClick={() => setEditingChangelog(changelog)}>Edit</button>
             </>

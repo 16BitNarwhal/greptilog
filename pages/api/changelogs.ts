@@ -22,15 +22,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!repo_id) {
         return res.status(400).json({ message: 'No repository ID provided' });
       }
+
+      const repo_response = await axios.get(`https://api.github.com/repositories/${repo_id}`, { headers: { Authorization: `Bearer ${session.accessToken}` } });
+      const owner = repo_response.data.owner.login.toLowerCase();
+      const name = repo_response.data.name.toLowerCase();
       await connectToDatabase();
       // if repo not in db, create it
       if (!await RepoModel.exists({ id: repo_id })) {
-        await RepoModel.create({ id: repo_id, changelogs: [] });
+        await RepoModel.create({ id: repo_id, changelogs: [], owner, name });
       }
       // // create new changelog
       // format commits + prompt
-      const since = req.query.since;
-      const until = req.query.until;
+      const since = req.body.since;
+      const until = req.body.until;
       const url = `https://api.github.com/repositories/${repo_id}/commits`
         + (since ? `&since=${since}` : '')
         + (until ? `&until=${until}` : '');
@@ -56,9 +60,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const md_content = openai_response.choices[0]?.message.content?.trim();
       const changelog: Changelog = {
         timestamp: new Date(),
-        version: req.query.version as string || '1.0.0',
+        version: req.body.version as string || '0.0.0',
         md_content: md_content || '',
-        title: req.query.title as string,
+        title: req.body.title as string,
         commits: commits,
       }
       console.log("Adding changelog to db...");
@@ -77,15 +81,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   } else if (req.method === 'GET') {
     try {
       const repo_id = req.query.id;
-      if (!repo_id) {
-        return res.status(400).json({ message: 'No repository ID provided' });
+      const owner = req.query.owner;
+      const name = req.query.name;
+      if (!repo_id && (!owner || !name)) {
+        return res.status(400).json({ message: 'No repository ID or owner/repo provided' });
       }
       await connectToDatabase();
-      const repo = await RepoModel.findOne({ id: repo_id });
+      const repo = repo_id ? await RepoModel.findOne({ id: repo_id }) : await RepoModel.findOne({ owner, name });
       const all_changelogs = repo?.changelogs || [];
 
       const use_links = req.query.use_links === 'true';
-      console.log(use_links);
       if (!use_links) {
         all_changelogs.forEach((log: Changelog) => {
           // Remove markdown links like [title](link)
