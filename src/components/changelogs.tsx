@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Session } from 'next-auth';
 
 interface ChangelogsProps {
   selectedRepo: { id: number; name: string; html_url: string } | null;
-  session: any;
+  session: Session;
 }
 
 export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {

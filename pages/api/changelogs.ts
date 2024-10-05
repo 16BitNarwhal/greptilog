@@ -5,7 +5,6 @@ import { connectToDatabase } from '@/../lib/db/mongoose';
 import { RepoModel } from '@/../lib/db/repoModel';
 import { OpenAI } from 'openai/index.mjs';
 import axios from 'axios';
-import { randomUUID } from 'crypto';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

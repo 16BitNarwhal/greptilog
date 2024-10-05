@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Session } from 'next-auth';
 
 interface Commit {
   sha: string;
@@ -11,7 +12,7 @@ interface Commit {
 
 interface CommitsProps {
   selectedRepo: { id: number; name: string; html_url: string } | null;
-  session: any;
+  session: Session;
   onGenerateChangelog: () => void;
 }
 
@@ -53,7 +54,7 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
   const handleCreateChangelog = async () => {
     if (!selectedRepo) return;
     setLoading(true);
-    const response = await axios.post(`/api/changelogs?id=${selectedRepo.id}`, { commits }, { 
+    await axios.post(`/api/changelogs?id=${selectedRepo.id}`, { commits }, { 
       headers: { Authorization: `Bearer ${session.accessToken}` },
       withCredentials: true,
     });
