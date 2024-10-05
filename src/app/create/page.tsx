@@ -51,7 +51,7 @@ function Content() {
           </option>
         ))}
       </select>
-      {selectedRepo && <p>Currently selected repo: {selectedRepo.name}</p>}
+      {selectedRepo && <a href={selectedRepo.html_url}>Currently selected repo: {selectedRepo.name}</a>}
 
     </>}</div>
   );
