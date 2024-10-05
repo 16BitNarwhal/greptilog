@@ -18,6 +18,7 @@ function Content() {
   const { data: session, status } = useSession();
   const [repos, setRepos] = useState<Repo[]>([]);
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null);
+  const [showCommits, setShowCommits] = useState(true);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -39,7 +40,7 @@ function Content() {
   const onGenerateChangelog = async () => {
     if (!selectedRepo) return;
     if (!session) return;
-    setSelectedRepo(selectedRepo); // trigger useEffects
+    setShowCommits(false);
   };
 
   return (
@@ -64,8 +65,11 @@ function Content() {
         </select>
         {selectedRepo && <>
           <a target="_blank" href={selectedRepo.html_url}>Currently selected repo: {selectedRepo.name}</a>
-          <Commits selectedRepo={selectedRepo} session={session} onGenerateChangelog={onGenerateChangelog} />
-          <Changelogs selectedRepo={selectedRepo} session={session} />
+          <div className="flex gap-2">
+            <button onClick={() => setShowCommits(true)}>Commits</button>
+            <button onClick={() => setShowCommits(false)}>Changelogs</button>
+          </div>
+          {showCommits ? <Commits selectedRepo={selectedRepo} session={session} onGenerateChangelog={onGenerateChangelog} /> : <Changelogs selectedRepo={selectedRepo} session={session} />}
         </>}
       </>}
     </div>
