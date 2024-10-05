@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isHomePage = pathname === '/'
+  const isCreatePage = pathname === '/create'
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -18,7 +19,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <span className="text-2xl font-bold">Greptilog</span>
                 </Link>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                  <Link href="/create" className="border-transparent text-foreground hover:border-foreground hover:text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                  <Link
+                    href="/create"
+                    className={
+                      isCreatePage
+                        ? 'border-primary text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
+                        : 'border-transparent text-foreground hover:border-foreground hover:text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
+                    }
+                  >
                     Create
                   </Link>
                 </div>
