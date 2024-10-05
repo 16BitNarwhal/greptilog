@@ -44,7 +44,7 @@ function Content() {
 
       const url = `/api/commits?_id=${selectedRepoId}&page=${page}&per_page=${perPage}?since=${since}&until=${until}`;
       const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}`, }, });
-
+      console.log(response.data);
       setCommits(response.data);
     }
     fetchCommits();
@@ -73,11 +73,18 @@ function Content() {
       </select>
       {selectedRepo && <>
         <a href={selectedRepo.html_url}>Currently selected repo: {selectedRepo.name}</a>
-        <ul>
+        <div>
           {commits.map((commit) => (
-            <a href={commit.html_url} key={commit.sha}>{commit.commit.message}</a>
+            <div key={commit.sha} className="mt-4">
+              <a href={commit.html_url} className="block">
+                {commit.commit.message
+                  .split('\n')
+                  .map((line, index) => <span key={index} style={{ display: 'block' }}>{line}</span>)}
+              </a>
+            </div>
+
           ))}
-        </ul>
+        </div>
       </>}
 
     </>}</div>
