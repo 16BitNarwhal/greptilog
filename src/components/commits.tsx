@@ -57,7 +57,9 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
   const handleCreateChangelog = async () => {
     if (!selectedRepo) return;
     setLoading(true);
-    await axios.post(`/api/changelogs?id=${selectedRepo.id}`, { since, until, version, title }, { 
+    const sinceDate = new Date(since);
+    const untilDate = new Date(until);
+    await axios.post(`/api/changelogs?id=${selectedRepo.id}`, { sinceDate, untilDate, version, title }, { 
       headers: { Authorization: `Bearer ${session.accessToken}` },
       withCredentials: true,
     });
@@ -109,7 +111,9 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
       </div>
       <Button onClick={handleCreateChangelog}>Generate changelog</Button>
       <div className="space-y-4">
-        {commits.map((commit) => (
+        {loading ? (
+          <div className="text-center">Loading...</div>
+        ) : commits.map((commit) => (
           <Card key={commit.sha}>
             <CardContent className="pt-6">
               <div className="flex justify-between items-start">
