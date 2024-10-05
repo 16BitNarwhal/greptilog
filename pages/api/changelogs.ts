@@ -5,6 +5,7 @@ import { connectToDatabase } from '@/../lib/db/mongoose';
 import { RepoModel } from '@/../lib/db/repoModel';
 import { OpenAI } from 'openai/index.mjs';
 import axios from 'axios';
+import { randomUUID } from 'crypto';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -13,7 +14,6 @@ const openai = new OpenAI({
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'POST') {
     const session = await getServerSession(req, res, authOptions);
-    console.log(session);
     if (!session) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -61,7 +61,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         title: req.query.title as string,
         commits: commits,
       }
-
       console.log("Adding changelog to db...");
       // add changelog to db
       await RepoModel.findOneAndUpdate({ id: repo_id }, { $push: { changelogs: changelog } });
@@ -104,10 +103,33 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       console.error('Error fetching changelogs', error);
       return res.status(500).json({ message: 'Error fetcing changelogs' });
     }
+  } else if (req.method === 'PUT') {
+    console.log('reeee');
+
+    try {
+      const changelog_id = req.query.changelog_id;
+      if (!changelog_id) {
+        return res.status(400).json({ message: 'No changelog ID provided' });
+      }
+      const changelog = await RepoModel.findOne({ changelogs: { $elemMatch: { _id: changelog_id } } });
+      if (!changelog) {
+        return res.status(404).json({ message: 'Changelog not found' });
+      }
+      const { md_content } = req.body;
+      if (!md_content) {
+        return res.status(400).json({ message: 'No changelog content provided' });
+      }
+
+      changelog.changelogs[0].md_content = md_content;
+      await changelog.save();
+      return res.status(200).json({ message: 'Changelog updated' });
+    } catch (error) {
+      console.error('Error updating changelog', error);
+      return res.status(500).json({ message: 'Error updating changelog' });
+    }
   }
 
   return res.status(405).json({ message: 'Method not allowed' });
 };
 
 export default handler;
-
