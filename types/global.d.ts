@@ -6,6 +6,14 @@ declare global {
         html_url: string;
         commits_url: string;
     };
+
+    type Commit = {
+        sha: string;
+        commit: {
+            message: string;
+        };
+        html_url: string;
+    };
 }
 
 export {};

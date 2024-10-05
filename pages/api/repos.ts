@@ -15,7 +15,6 @@ const reposHandler = async (req: NextApiRequest, res: NextApiResponse) => {
           Authorization: `Bearer ${session.accessToken}`,
         },
       });
-      console.log(response.data);
       return res.status(200).json(response.data);
     } catch (error) {
       console.error('Error fetching repositories', error);
