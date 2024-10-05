@@ -81,8 +81,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   } else if (req.method === 'GET') {
     try {
       const repo_id = req.query.id;
-      const owner = req.query.owner;
-      const name = req.query.name;
+      const owner = (req.query.owner as string)?.toLowerCase();
+      const name = (req.query.name as string)?.toLowerCase();
       if (!repo_id && (!owner || !name)) {
         return res.status(400).json({ message: 'No repository ID or owner/repo provided' });
       }

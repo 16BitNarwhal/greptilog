@@ -6,9 +6,10 @@ import ReactMarkdown from 'react-markdown';
 interface ChangelogsProps {
   selectedRepo: { id: number; name: string; html_url: string } | null;
   session: Session;
+  showCommits: boolean;
 }
 
-export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
+export default function Changelogs({ selectedRepo, session, showCommits}: ChangelogsProps) {
   const [changelogs, setChangelogs] = useState<ChangelogWithId[]>([]);
   const [editingChangelog, setEditingChangelog] = useState<ChangelogWithId | null>(null);
   const [loading, setLoading] = useState(false);
@@ -16,11 +17,13 @@ export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
   useEffect(() => {
     if (!selectedRepo) return;
     fetchChangelogs();
-  }, [selectedRepo, session]);
+  }, [selectedRepo, session, showCommits]);
 
   const fetchChangelogs = async () => {
     setLoading(true);
     try {
+      console.log('fetching changelogs');
+      console.log(`/api/changelogs?id=${selectedRepo?.id}`);
       const response = await axios.get(`/api/changelogs?id=${selectedRepo?.id}`, {
         headers: { Authorization: `Bearer ${session.accessToken}` },
       });
