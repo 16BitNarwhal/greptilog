@@ -67,7 +67,7 @@ function Content() {
   const handleCreateChangelog = async () => {
     if (!selectedRepo) return;
     if (!session) return;
-    const response = await axios.post('/api/changelogs', { id: selectedRepo.id, commits }, { 
+    const response = await axios.post(`/api/changelogs?id=${selectedRepo.id}`, { commits }, { 
       headers: { Authorization: `Bearer ${session.accessToken}` },
       withCredentials: true,
     });

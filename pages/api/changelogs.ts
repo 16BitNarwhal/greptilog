@@ -11,15 +11,15 @@ const openai = new OpenAI({
 });
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const session = await getServerSession(req, res, authOptions);
-  console.log(session);
-  if (!session) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-
   if (req.method === 'POST') {
+    const session = await getServerSession(req, res, authOptions);
+    console.log(session);
+    if (!session) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
-      const repo_id = req.body.id as number;
+      const repo_id = req.query.id;
       if (!repo_id) {
         return res.status(400).json({ message: 'No repository ID provided' });
       }
@@ -37,9 +37,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         + (until ? `&until=${until}` : '');
       const commits_response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
       const commits = commits_response.data as Commit[];
-      const prompt = `Given the following commits, generate a friendly changelog in markdown for users (and feel free to use emojis and links):\n\n`
+      const prompt = `Given the following commits, generate a friendly changelog in markdown for users. Make sure to use emojis and links:\n\n`
         + commits.map(commit => `- ${commit.commit.message} (${commit.html_url})`).join('\n');
 
+      console.log("Making request to OpenAI...");
       const openai_response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [
@@ -61,6 +62,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         commits: commits,
       }
 
+      console.log("Adding changelog to db...");
       // add changelog to db
       await RepoModel.findOneAndUpdate({ id: repo_id }, { $push: { changelogs: changelog } });
 
@@ -82,6 +84,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       const repo = await RepoModel.findOne({ id: repo_id });
       const all_changelogs = repo?.changelogs || [];
+
+      const use_links = req.body.use_links === 'true';
+      if (!use_links) {
+        all_changelogs.forEach((log: Changelog) => {
+          // Remove markdown links like [title](link)
+          log.md_content = log.md_content.replace(/\[([^\]]+)\]\((https?:\/\/[^\s]*github[^\s]*commit[^\s]*)\)/gi, '$1');
+
+          // Remove standalone links (link) that contain "github" and "commit"
+          log.md_content = log.md_content.replace(/\((https?:\/\/[^\s]*github[^\s]*commit[^\s]*)\)/gi, '');
+
+          // Remove standalone links that are just text and contain "github" and "commit"
+          log.md_content = log.md_content.replace(/https?:\/\/[^\s]*github[^\s]*commit[^\s]*/gi, '');
+        });
+      }
 
       return res.status(200).json({ message: 'Changelogs fetched', data: all_changelogs });
     } catch (error) {
