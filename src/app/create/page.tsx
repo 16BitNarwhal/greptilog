@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
+import { SessionProvider, signOut, useSession } from "next-auth/react";
 import axios from "axios";
 
 export default function Page() {
@@ -14,6 +14,7 @@ export default function Page() {
 function Content() {
   const { data: session, status } = useSession();
   const [repos, setRepos] = useState<Repo[]>([]);
+  const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null);
 
   useEffect(() => {
     const fetchRepos = async () => {
@@ -29,6 +30,12 @@ function Content() {
     fetchRepos();
   }, [session, status]);
 
+  const handleSelectRepo = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedRepoId = event.target.value;
+    const selectedRepo = repos.find((repo) => repo.id === parseInt(selectedRepoId));
+    setSelectedRepo(selectedRepo || null);
+  };
+
   return (
     <div>{ session && <>
 
@@ -36,14 +43,17 @@ function Content() {
       <button onClick={() => signOut()}>Sign out</button>
 
       <h1>Repos</h1>
-      <ul>
+      <select onChange={handleSelectRepo} value={selectedRepo?.id || ""}>
+        <option value="">Select a repo</option>
         {repos.map((repo) => (
-          <li key={repo.id}>
+          <option key={repo.id} value={repo.id}>
             {repo.name}
-          </li>
+          </option>
         ))}
-      </ul>
+      </select>
+      {selectedRepo && <p>Currently selected repo: {selectedRepo.name}</p>}
 
-    </>}</div>  );
+    </>}</div>
+  );
 
 }
