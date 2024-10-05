@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
+import axios from "axios";
 
 export default function Page() {
   return (
@@ -11,15 +12,22 @@ export default function Page() {
 }
 
 function Content() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [repos, setRepos] = useState<Repo[]>([]);
 
-  const fetchRepos = async () => {
-    fetch('/api/repos').then((res) => res.json()).then((data) => {
-      console.log(data);
-      setRepos(data);
-    })
-  }
+  useEffect(() => {
+    const fetchRepos = async () => {
+      if (status === "authenticated") {
+        const response = await axios.get('/api/repos', {
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+        });
+        setRepos(response.data);
+      }
+    };
+    fetchRepos();
+  }, [session, status]);
 
   return (
     <div>{ session && <>
@@ -27,7 +35,15 @@ function Content() {
       <p>Welcome {session.user?.name}!</p>
       <button onClick={() => signOut()}>Sign out</button>
 
-    </>}</div>
-  );
+      <h1>Repos</h1>
+      <ul>
+        {repos.map((repo) => (
+          <li key={repo.id}>
+            {repo.name}
+          </li>
+        ))}
+      </ul>
+
+    </>}</div>  );
 
 }
