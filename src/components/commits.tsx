@@ -59,7 +59,7 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
     setLoading(true);
     const sinceDate = new Date(since);
     const untilDate = new Date(until);
-    await axios.post(`/api/changelogs?id=${selectedRepo.id}`, { sinceDate, untilDate, version, title }, { 
+    await axios.post(`/api/changelogs?id=${selectedRepo.id}`, { since:sinceDate, until:untilDate, version, title }, { 
       headers: { Authorization: `Bearer ${session.accessToken}` },
       withCredentials: true,
     });

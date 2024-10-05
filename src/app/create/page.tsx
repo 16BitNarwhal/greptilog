@@ -15,8 +15,6 @@ function CreateContent() {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null);
   const [showCommits, setShowCommits] = useState(true);
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
 
   useEffect(() => {
     if (status !== "authenticated") return;
