@@ -64,6 +64,16 @@ function Content() {
     setSelectedRepo(selectedRepo || null);
   };
 
+  const handleCreateChangelog = async () => {
+    if (!selectedRepo) return;
+    if (!session) return;
+    const response = await axios.post('/api/changelogs', { id: selectedRepo.id, commits }, { 
+      headers: { Authorization: `Bearer ${session.accessToken}` },
+      withCredentials: true,
+    });
+    console.log(response.data);
+  }
+
   return (
     <div>{ session && <>
 
@@ -80,7 +90,14 @@ function Content() {
         ))}
       </select>
       {selectedRepo && <>
-        <a href={selectedRepo.html_url}>Currently selected repo: {selectedRepo.name}</a>
+
+        <br/>
+        <button onClick={handleCreateChangelog}>
+          Generate changelog
+        </button>
+        <br/>
+
+        <a target="_blank" href={selectedRepo.html_url}>Currently selected repo: {selectedRepo.name}</a>
         <div className="flex items-center">
           <label htmlFor="since" className="mr-2">Since:</label>
           <input type="datetime-local" id="since" value={since} onChange={(event) => setSince(event.target.value)} className="border px-2 py-1" />
@@ -111,7 +128,7 @@ function Content() {
         <div>
           {commits.map((commit) => (
             <div key={commit.sha} className="mt-4">
-              <a href={commit.html_url} className="block">
+              <a target="_blank" href={commit.html_url} className="block">
                 {commit.commit.message
                   .split('\n')
                   .map((line, index) => <span key={index} style={{ display: 'block' }}>{line}</span>)}
