@@ -36,8 +36,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         + (until ? `&until=${until}` : '');
       const commits_response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
       const commits = commits_response.data as Commit[];
-      const prompt = `Given the following commits, generate a friendly changelog in markdown for users. Make sure to use emojis and links:\n\n`
-        + commits.map(commit => `- ${commit.commit.message} (${commit.html_url})`).join('\n');
+      const prompt = `Given the following commits, generate a friendly changelog in markdown for users to know what has changed. \
+        You can use emojis. Do not mention code specific changes like talking about loops or comments.\n\n`
+        + commits.map(commit => `- ${commit.commit.message}`).join('\n'); // TODO: fix commit links (currently removed due to LLM hallucinations)
 
       console.log("Making request to OpenAI...");
       const openai_response = await openai.chat.completions.create({
@@ -83,7 +84,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const repo = await RepoModel.findOne({ id: repo_id });
       const all_changelogs = repo?.changelogs || [];
 
-      const use_links = req.body.use_links === 'true';
+      const use_links = req.query.use_links === 'true';
+      console.log(use_links);
       if (!use_links) {
         all_changelogs.forEach((log: Changelog) => {
           // Remove markdown links like [title](link)

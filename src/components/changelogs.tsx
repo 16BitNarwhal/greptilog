@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Session } from 'next-auth';
+import ReactMarkdown from 'react-markdown';
 
 interface ChangelogsProps {
   selectedRepo: { id: number; name: string; html_url: string } | null;
@@ -21,7 +22,7 @@ export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
     setLoading(true);
     try {
       const response = await axios.get(`/api/changelogs?id=${selectedRepo?.id}`, {
-        headers: { Authorization: `Bearer ${session.accessToken}` }
+        headers: { Authorization: `Bearer ${session.accessToken}` },
       });
       // sort reverse chronologically
       setChangelogs(
@@ -69,7 +70,7 @@ export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
           ) : (
             <>
               <p>{new Date(changelog.timestamp).toLocaleString()}</p>
-              <p>{changelog.md_content}</p>
+              <ReactMarkdown>{changelog.md_content}</ReactMarkdown>
               <button onClick={() => setEditingChangelog(changelog)}>Edit</button>
             </>
           )}
