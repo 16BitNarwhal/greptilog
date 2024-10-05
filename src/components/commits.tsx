@@ -58,7 +58,7 @@ export default function Commits({ selectedRepo, session, onGenerateChangelog }: 
       withCredentials: true,
     });
     setLoading(false);
-    console.log(response.data); // TODO: display for approval / editing
+    onGenerateChangelog();
   }
 
   return (

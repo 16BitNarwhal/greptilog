@@ -22,8 +22,13 @@ export default function Changelogs({ selectedRepo, session }: ChangelogsProps) {
       const response = await axios.get(`/api/changelogs?id=${selectedRepo?.id}`, {
         headers: { Authorization: `Bearer ${session.accessToken}` }
       });
-      console.log(response.data.data);
-      setChangelogs(response.data.data);
+      // sort reverse chronologically
+      setChangelogs(
+        response.data.data.sort((a: ChangelogWithId, b: ChangelogWithId) => {
+          const aDate = new Date(a.timestamp), bDate = new Date(b.timestamp);
+          return bDate.getTime() - aDate.getTime();
+        })
+      );
     } catch (error) {
       console.error('Error fetching changelogs:', error);
     }
