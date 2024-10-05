@@ -33,8 +33,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
       // // create new changelog
       // format commits + prompt
-      const since = req.query.since;
-      const until = req.query.until;
+      const since = req.body.since;
+      const until = req.body.until;
       const url = `https://api.github.com/repositories/${repo_id}/commits`
         + (since ? `&since=${since}` : '')
         + (until ? `&until=${until}` : '');
@@ -60,9 +60,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const md_content = openai_response.choices[0]?.message.content?.trim();
       const changelog: Changelog = {
         timestamp: new Date(),
-        version: req.query.version as string || '1.0.0',
+        version: req.body.version as string || '0.0.0',
         md_content: md_content || '',
-        title: req.query.title as string,
+        title: req.body.title as string,
         commits: commits,
       }
       console.log("Adding changelog to db...");
