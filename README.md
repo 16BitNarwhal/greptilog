@@ -59,9 +59,11 @@ npm run dev
 ## Extra comments
 I used a NoSQL database for flexible fields (easy to change schema or if later down the line, I want to enable users to design their own). Changelogs are stored in the database under each Repo as a document keeping it easy to manage changelogs under a repo and new changelogs are pushed onto an array in the Repo document.
 
+There's a technical challenge of getting all the diffs from each commit (not just the message), using `git diff --name-only <starting SHA> HEAD` then feed into GPT (or having too many commit messages).
+Using the entire commit history of greptilog, I surpassed the OpenAI GPT-3.5 token limit by 10x. A solution I'd consider "chunk" each and generate LLM queries for more detailed changelogs.
+
 With some more time, here are things I'd do:
 - enable connection to links. previously I had GPT directly write hyperrefs in markdown content but it started hallucinating. instead, I'd have GPT write in numbers such as [0], [1] based on which commit they should link, then use regex to connect them to the commits
-- get all the diffs from each commit (not just the message), using `git diff --name-only <starting SHA> HEAD` then feed into GPT
 - the vercel deployment isn't working so fix that ;)
 
 Made with: Next.js, MongoDB, Github OAuth
