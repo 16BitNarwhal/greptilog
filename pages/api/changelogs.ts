@@ -4,6 +4,7 @@ import { authOptions } from '@/../pages/api/auth/[...nextauth]';
 import { connectToDatabase } from '@/../lib/db/mongoose';
 import { RepoModel } from '@/../lib/db/repoModel';
 import { OpenAI } from 'openai/index.mjs';
+import { getGitDiff } from '@/../lib/processes/git-diff';
 import axios from 'axios';
 
 const openai = new OpenAI({
@@ -35,18 +36,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // format commits + prompt
       const since = req.body.since ? new Date(req.body.since) : undefined;
       const until = req.body.until ? new Date(req.body.until) : undefined;
-      console.log(since, until);
       const url = `https://api.github.com/repositories/${repo_id}/commits`
         + (since || until ? '?' : '')
         + (since ? `since=${encodeURIComponent(since.toISOString())}` : '')
         + (until ? (since ? `&` : '') + `until=${encodeURIComponent(until.toISOString())}` : '');
-      console.log(url);
       const commits_response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
       const commits = commits_response.data as Commit[];
-      console.log(commits.length);
-      const prompt = `Given the following commits, generate a friendly changelog in markdown for users to know what has changed. \
-        You can use emojis. Do not mention code specific changes like talking about loops or comments.\n\n`
-        + commits.map(commit => `- ${commit.commit.message}`).join('\n'); // TODO: fix commit links (currently removed due to LLM hallucinations)
+      const first_commit = commits[0];
+      const last_commit = commits[commits.length - 1];
+      const diff = getGitDiff([first_commit.sha, last_commit.sha]);
+      const prompt = `\
+Generate a friendly changelog in markdown for users to know what has changed.
+You can use emojis. Do not mention code specific changes like talking about loops or comments.
+Here are the commits:\n ${commits.map(commit => `- ${commit.commit.message}`).join('\n')}\n\n
+Here is the git diff:\n ${diff.slice(0, 1000)}\n\n
+\n\n`; // diff sliced to 1000 chars due to OpenAI limit
 
       console.log("Making request to OpenAI...");
       const openai_response = await openai.chat.completions.create({
@@ -114,14 +118,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(500).json({ message: 'Error fetcing changelogs' });
     }
   } else if (req.method === 'PUT') {
-    console.log('reeee');
     try {
       await connectToDatabase();
       const changelog_id = req.query.changelog_id;
       if (!changelog_id) {
         return res.status(400).json({ message: 'No changelog ID provided' });
       }
-      console.log(changelog_id);
       const changelog = await RepoModel.findOne({ changelogs: { $elemMatch: { _id: changelog_id } } });
       if (!changelog) {
         return res.status(404).json({ message: 'Changelog not found' });
