@@ -67,3 +67,4 @@ With some more time, here are things I'd do:
 - the vercel deployment isn't working so fix that ;)
 
 Made with: Next.js, MongoDB, Github OAuth
+AI tools used: ChatGPT for general code generation, v0 for UI
